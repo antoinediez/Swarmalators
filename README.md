@@ -36,7 +36,7 @@ A finite-volume discretization of the hydrodynamic model is implemented in Julia
 
 ## Results 
 
-Examples of simulations are gathered in this [Figshare project](ttps://figshare.com/projects/Topological_states_and_continuum_model_for_swarmalators_without_force_reciprocity/139912).
+Examples of simulations are gathered in this [Figshare project](https://figshare.com/projects/Topological_states_and_continuum_model_for_swarmalators_without_force_reciprocity/139912).
 
 
 
