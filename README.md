@@ -6,7 +6,8 @@
 
 This repository contains the source code for the article 
 
-P. Degond, A. Diez, A. Walczak, *Topological states and continuum model for swarmalators without force reciprocity*, arXiv preprint arxiv:??????
+P. Degond, A. Diez, A. Walczak, *Topological states and continuum model for swarmalators without force reciprocity*, arXiv preprint [arXiv:2205.15739](https://arxiv.org/abs/2205.15739)
+
 
 ## Abstract 
 Swarmalators are systems of agents which are both self-propelled particles and oscillators. Each particle is endowed with a phase which modulates its interaction force with the other particles. In return, relative positions modulate phase syn- chronization between interacting particles. In the present model, there is no force reciprocity: when a particle attracts another one, the latter repels the former. This results in a pursuit behavior. In this paper, we derive a hydrodynamic model of this swarmalator system and show that it has explicit doubly-periodic travelling-wave solutions in two space dimensions. These special solutions enjoy non-trivial topology quantified by the index of the phase vector along a period in either dimension. Stability of these solutions is studied theoretically by investigating the conditions for hyperbolicity of the model and numerically using the present code. 
