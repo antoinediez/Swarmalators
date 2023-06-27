@@ -288,7 +288,7 @@ function scheme_iter!(
                 α_ij_h = α_ij
                 α_ij_h -= (bp-b) * ρ[i,j] * dx_α_ij^2 * Δt
                 α_ij_h -= (bp-b) * ρ[i,j] * dy_α_ij^2 * Δt
-                α_ij_h += Δt * λp * (Δρ_ij + ∇sqrtρ_squared_ij)
+                α_ij_h += Δt * λp * (Δρ_ij + 4*∇sqrtρ_squared_ij)
 
                 cα[i,j] = cos(α_ij_h)
                 sα[i,j] = sin(α_ij_h)
