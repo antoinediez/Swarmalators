@@ -10,5 +10,8 @@ Simulation of a theoretical travelling-wave solution described in Proposition 3.
 
 <p align="center">
 <img src="./initial_condition.png" alt="Initial condition" width="400"/>
-Initial condition
+</p>
+
+<p align="center">
+<i>Initial condition</i>
 </p>
