@@ -4,13 +4,18 @@
 <img src="./exampletw.gif" alt="example" width="200"/>
 </p>
 
-This repository contains the source code for the article 
+This repository contains the source code for the articles 
 
-P. Degond, A. Diez, A. Walczak, *Topological states and continuum model for swarmalators without force reciprocity*, arXiv preprint [arXiv:2205.15739](https://arxiv.org/abs/2205.15739)
+1. P. Degond, A. Diez, A. Walczak, *Topological states and continuum model for swarmalators without force reciprocity*, Anal. Appl. (Singap.), 20(6):1215–1270, 2022, [[Article]](https://www.worldscientific.com/doi/10.1142/S0219530522400073), [[Preprint]](https://arxiv.org/abs/2205.15739).
 
+2. P. Degond, A. Diez, *Topological travelling waves of a macroscopic swarmalator model in confined geometries*, *TBC*.
 
 ## Abstract 
-Swarmalators are systems of agents which are both self-propelled particles and oscillators. Each particle is endowed with a phase which modulates its interaction force with the other particles. In return, relative positions modulate phase syn- chronization between interacting particles. In the present model, there is no force reciprocity: when a particle attracts another one, the latter repels the former. This results in a pursuit behavior. In this paper, we derive a hydrodynamic model of this swarmalator system and show that it has explicit doubly-periodic travelling-wave solutions in two space dimensions. These special solutions enjoy non-trivial topology quantified by the index of the phase vector along a period in either dimension. Stability of these solutions is studied theoretically by investigating the conditions for hyperbolicity of the model and numerically using the present code. 
+Swarmalators are systems of agents which are both self-propelled particles and oscillators. Each particle is endowed with a phase which modulates its interaction force with the other particles. In return, relative positions modulate phase synchronization between interacting particles. In the present model, there is no force reciprocity: when a particle attracts another one, the latter repels the former. This results in a pursuit behavior. 
+
+In the first article, we derive a hydrodynamic model of this swarmalator system and show that it has explicit doubly-periodic travelling-wave solutions in two space dimensions. These special solutions enjoy non-trivial topology quantified by the index of the phase vector along a period in either dimension. Stability of these solutions is studied theoretically by investigating the conditions for hyperbolicity of the model and numerically using the present code. 
+
+In the second article, we focus on the macroscopic model and investigate new classes of two-dimensional travelling-wave solutions confined in a strip or in an annulus. In the case of the strip, the solutions are periodic along the strip direction. They have non-trivial topology as their phase increases by a multiple of $2 \pi$ from one period (in the case of the strip) or one revolution (in the case of the annulus) to the next. Existence and qualitative behavior of these solutions are investigated.
 
 ## Methods
 
@@ -39,5 +44,5 @@ A finite-volume discretization of the hydrodynamic model is implemented in Julia
 
 Examples of simulations are gathered in this [Figshare project](https://figshare.com/projects/Topological_states_and_continuum_model_for_swarmalators_without_force_reciprocity/139912).
 
-
+Supplementary videos for the second article can be found in the present repository, in the folder [Supplementary](https://github.com/antoinediez/Swarmalators/Supplememtary).
 

@@ -156,6 +156,7 @@ function run!(
     data_dir = mkdir(joinpath(dir_name,"data"))
     data = Dict(:ρ => ρ, :u => u, :v => v, :cα => cα, :sα => sα)
     save(joinpath(data_dir,"data_0.jld2"),"time=0",data)
+    save(joinpath(dir_name,"parameters.jld2"), "parameters", parameters)
 
     if should_plot || save_video
         print("Initializing plot... ")

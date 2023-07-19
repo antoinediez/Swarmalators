@@ -77,19 +77,12 @@ function scheme_iter!(
                     sα[i,j+1],sα[i+1,j+1],
                     c1,c2,λ,b,Δx,method=method
             )
-            flux_x_ρ[i,j] = F[1]
-            flux_x_u[i,j] = F[2]
-            flux_x_v[i,j] = F[3]
-            flux_x_cα[i,j] = F[4]
-            flux_x_sα[i,j] = F[5]
-            max_vap_xy[i,j] = max_vap_x(
-                    ρ[i,j+1],ρ[i+1,j+1],
-                    u[i,j+1],u[i+1,j+1],
-                    v[i,j+1],v[i+1,j+1],
-                    cα[i,j+1],cα[i+1,j+1],
-                    sα[i,j+1],sα[i+1,j+1],
-                    c1,c2,λ,b,Δx
-            )
+            flux_x_ρ[i,j] = F[1][1]
+            flux_x_u[i,j] = F[1][2]
+            flux_x_v[i,j] = F[1][3]
+            flux_x_cα[i,j] = F[1][4]
+            flux_x_sα[i,j] = F[1][5]
+            max_vap_xy[i,j] = F[2]
 
         end
     end
@@ -172,19 +165,12 @@ function scheme_iter!(
                         c1,c2,λ,b,Δy,method=method
                 )
 
-                flux_y_ρ[i,j] = F[1]
-                flux_y_u[i,j] = -F[3]
-                flux_y_v[i,j] = F[2]
-                flux_y_cα[i,j] = F[4]
-                flux_y_sα[i,j] = F[5]
-                max_vap_xy[i,j] = max_vap_x(
-                    ρ_x[i+1,j],ρ_x[i+1,j+1],
-                    v_x[i+1,j],v_x[i+1,j+1],
-                    -u_x[i+1,j],-u_x[i+1,j+1],
-                    cα_x[i+1,j],cα_x[i+1,j+1],
-                    sα_x[i+1,j],sα_x[i+1,j+1],
-                    c1,c2,λ,b,Δy
-                )
+                flux_y_ρ[i,j] = F[1][1]
+                flux_y_u[i,j] = -F[1][3]
+                flux_y_v[i,j] = F[1][2]
+                flux_y_cα[i,j] = F[1][4]
+                flux_y_sα[i,j] = F[1][5]
+                max_vap_xy[i,j] = F[2]
             end
         end
         
@@ -246,7 +232,7 @@ function scheme_iter!(
     #======== Fractional splitting: exterior force and noise in the phase ==========#
     #===============================================================================#
     if !isnothing(Fx) && !isnothing(Fy)
-        scheme_potential!(u,v,Fx,Fy,Δt,λ)
+        scheme_potential!(ρ,u,v,Fx,Fy,Δt,λ)
         boundary_conditions_ρuv!(ρ,u,v,cα,sα,bcond_x,bcond_y)
     end
 
@@ -320,13 +306,13 @@ In dimension two, the solution is
 
 with C_0 = tan((θ(0)-ψ)/2) and F = |F|(cos(ψ),sin(ψ))ᵀ.
 """
-function scheme_potential!(u,v,Fx,Fy,Δt,λ)
+function scheme_potential!(ρ,u,v,Fx,Fy,Δt,λ)
     ncellx = size(u)[1] - 2
     ncelly = size(u)[2] - 2
     @inbounds for j in 2:ncelly+1
         for i in 2:ncellx+1
             normF = sqrt(Fx[i,j]^2 + Fy[i,j]^2)
-            if normF > 1e-9
+            if (normF > 1e-10) & (ρ[i,j]>1e-10)
                 θ0 = atan(v[i,j],u[i,j])
                 ψ = atan(Fy[i,j],Fx[i,j])
                 C0 = tan((θ0-ψ)/2)

@@ -56,8 +56,13 @@ function flux_x(ρl,ρr,ul,ur,vl,vr,cαl,cαr,sαl,sαr,c1,c2,λ,b,Δx;method="R
     zlr = angle(cαr*cαl + sαl*sαr + 1im*(sαr*cαl - sαl*cαr)) / Δx
 
     if method=="HLLE"
-        um = (sqrt(ρl)*ul + sqrt(ρr)*ur) / (sqrt(ρl) + sqrt(ρr))
+        if (sqrt(ρl) + sqrt(ρr))>0
+            um = (sqrt(ρl)*ul + sqrt(ρr)*ur) / (sqrt(ρl) + sqrt(ρr))
+        else
+            um = 0.5*(ul+ur)
+        end
         ρm = 0.5*(ρl + ρr)
+
         vp_l = eigenvalues_Roe(ρl,ul,zlr,c1,c2,λ,b)
         vp_r = eigenvalues_Roe(ρr,ur,zlr,c1,c2,λ,b)
         vp_Roe = eigenvalues_Roe(ρm,um,zlr,c1,c2,λ,b)
@@ -66,11 +71,18 @@ function flux_x(ρl,ρr,ul,ur,vl,vr,cαl,cαr,sαl,sαr,c1,c2,λ,b,Δx;method="R
         s_lm = min(s_l,0.)
         s_rp = max(s_r,0.)
 
-        f_l = (c1*ρl*ul + b*ρl^2*zlr, c2*ρl*ul^2 + λ*ρl + b*ρl^2*ul*zlr, c2*ρl*ul*vl + b*ρl^2*vl*zlr, c1*ρl*cαl*ul + b*ρl^2*cαl*zlr, c1*ρl*sαl*ul + b*ρl^2*sαl*zlr)
-        f_r = (c1*ρr*ur + b*ρr^2*zlr, c2*ρr*ur^2 + λ*ρr + b*ρr^2*ur*zlr, c2*ρr*ur*vr + b*ρr^2*vr*zlr, c1*ρr*cαr*ur + b*ρr^2*cαr*zlr, c1*ρr*sαr*ur + b*ρr^2*sαr*zlr)
-        U_l = (ρl,ρl*ul,ρl*vl,ρl*cαl,ρl*sαl)
-        U_r = (ρr,ρr*ur,ρr*vr,ρr*cαr,ρr*sαr)
-        flux = ((s_rp.*f_l .- s_lm.*f_r) .+ (s_rp*s_lm) .* (U_r .- U_l)) ./ (s_rp - s_lm)
+        if (s_rp - s_lm)==0
+            flux = 0.0,0.0,0.0,0.0,0.0
+        else
+            f_l = (c1*ρl*ul + b*ρl^2*zlr, c2*ρl*ul^2 + λ*ρl + b*ρl^2*ul*zlr, c2*ρl*ul*vl + b*ρl^2*vl*zlr, c1*ρl*cαl*ul + b*ρl^2*cαl*zlr, c1*ρl*sαl*ul + b*ρl^2*sαl*zlr)
+            f_r = (c1*ρr*ur + b*ρr^2*zlr, c2*ρr*ur^2 + λ*ρr + b*ρr^2*ur*zlr, c2*ρr*ur*vr + b*ρr^2*vr*zlr, c1*ρr*cαr*ur + b*ρr^2*cαr*zlr, c1*ρr*sαr*ur + b*ρr^2*sαr*zlr)
+            U_l = (ρl,ρl*ul,ρl*vl,ρl*cαl,ρl*sαl)
+            U_r = (ρr,ρr*ur,ρr*vr,ρr*cαr,ρr*sαr)
+            flux = ((s_rp.*f_l .- s_lm.*f_r) .+ (s_rp*s_lm) .* (U_r .- U_l)) ./ (s_rp - s_lm)
+        end
+
+        max_vap = max(maximum(abs.(vp_l)),maximum(abs.(vp_r)),maximum(abs.(vp_Roe)))
+
     elseif method == "Roe"
         um = (sqrt(ρl)*ul + sqrt(ρr)*ur) / (sqrt(ρl) + sqrt(ρr))
         ρm = 0.5*(ρl + ρr)
@@ -91,7 +103,7 @@ function flux_x(ρl,ρr,ul,ur,vl,vr,cαl,cαr,sαl,sαr,c1,c2,λ,b,Δx;method="R
 
     end
 
-    return flux
+    return flux, max_vap
 
 end
 

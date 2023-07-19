@@ -1,4 +1,6 @@
 using QuadGK, HCubature
+using NLsolve
+# using Images, FileIO, VideoIO
 
 """
 Create a new directory `dirname` in the current path.
@@ -77,3 +79,220 @@ function coefficients_Vicsek(κ;model="Fokker-Planck")
         ArgumentError("Model not defined!")
     end
 end
+
+
+# function make_video(path;video_name="video.mp4",fps=30)
+#     dir = joinpath(path,"plots") #path to directory holding images
+#     imgnames = filter(x->occursin(".png",x), readdir(dir)) # Populate list of all .pngs
+#     intstrings =  map(x->split(x,".")[1], imgnames) # Extract index from filenames
+#     p = sortperm(parse.(Int, intstrings)) #sort files numerically
+#     imgnames = imgnames[p]
+
+#     encoder_options = (crf=23, preset="medium")
+
+#     firstimg = load(joinpath(dir, imgnames[1]))
+#     open_video_out(joinpath(path,video_name), firstimg, framerate=fps, encoder_options=encoder_options,target_pix_fmt=VideoIO.AV_PIX_FMT_YUV420P) do writer
+#         @showprogress "Encoding video frames.." for i in eachindex(imgnames)
+#             img = load(joinpath(dir, imgnames[i]))
+#             write(writer, img)
+#         end
+#     end
+# end
+
+
+##################################################################################################
+#################### EXPLICIT AND IMPLICIT FUNCTIONS FOR THE STRIP GEOMETRY ######################
+##################################################################################################
+
+function F(ρ;el,q)
+    if ρ<0
+        return ρ
+    end
+    if el>0
+        return abs(ρ)^q*abs(ρ+el)^(1-q)
+    else
+        if ρ<-el
+            return ρ^q*(-el-ρ)^(1-q)
+        else
+            return ρ^q*(ρ+el)^(1-q)
+        end
+    end
+end
+
+
+function F1(ρ;el,q)
+    mq = q^q*(1-q)^(1-q)
+    Ml = -mq*el
+    if el>0
+        error("F1 for ℓ<0 only.")
+    end
+    if ρ<0
+        return 0.0
+    elseif ρ>-q*el
+        return Ml
+    else
+        return ρ^q*(-el-ρ)^(1-q)
+    end
+    # if ρ<-el
+    #     return 
+    # else
+    #     return ρ^q*(ρ+el)^(1-q)
+    # end
+end
+
+function F2(ρ;el,q)
+    mq = q^q*(1-q)^(1-q)
+    Ml = -mq*el
+    if el>0
+        error("F2 for ℓ<0 only.")
+    end
+    if ρ<-q*el
+        return Ml
+    elseif ρ<-el
+        return ρ^q*(-el-ρ)^(1-q)
+    else
+        return -ρ-el
+    end
+end
+
+function F3(ρ;el,q)
+    mq = q^q*(1-q)^(1-q)
+    Ml = -mq*el
+    if el>0
+        error("F3 for ℓ<0 only.")
+    end
+    if ρ<-el
+        return ρ+el
+    else
+        return ρ^q*(ρ+el)^(1-q)
+    end
+end
+
+function G(y;el,q)
+    function fun!(f,ρ)
+        f[1] = F(ρ[1];el=el,q=q) - y
+    end
+    sol = nlsolve(fun!,[1.0])
+    if sol.f_converged
+        return sol.zero[1]
+    else
+        error("Failed (G).")
+    end
+end
+
+function G1(y;el,q)
+    mq = q^q*(1-q)^(1-q)
+    Ml = -mq*el
+    if y>Ml
+        # error("Argument y=$y out of the definition range of G1.")
+        return -q*el + (y-Ml)*50000000
+    end
+    function fun!(f,ρ)
+        f[1] = F1(ρ[1];el=el,q=q) - y + 100000*(ρ[1]>-q*el)
+    end
+    sol = nlsolve(fun!,[-0.5*q*el])
+    if sol.f_converged
+        return sol.zero[1]
+    else
+        error("Failed (G1).")
+    end
+end
+
+function G2(y;el,q)
+    mq = q^q*(1-q)^(1-q)
+    Ml = -mq*el
+    if y>Ml
+        error("Argument y=$y out of the definition range of G1.")
+    end
+    function fun!(f,ρ)
+        f[1] = F2(ρ[1];el=el,q=q) - y 
+    end
+    sol = nlsolve(fun!,[-0.5*(q*el+el)])
+    if sol.f_converged
+        return sol.zero[1]
+    else
+        error("Failed (G2).")
+    end
+end
+
+function G3(y;el,q)
+    function fun!(f,ρ)
+        f[1] = F3(ρ[1];el=el,q=q) - y
+    end
+    sol = nlsolve(fun!,[-2*el],ftol=1e-3)
+    if sol.f_converged
+        return sol.zero[1]
+    else
+        error("Failed (G3).")
+    end
+end
+
+function ICL(C;el,κp,V0,q,Δx=Δx,k=0)
+    if k==0
+        return sum(G.(C.*exp.(-κp.*V0);el=el,q=q))*Δx
+    elseif k==1
+        return sum(G1.(C.*exp.(-κp.*V0);el=el,q=q))*Δx
+    elseif k==3
+        return sum(G3.(C.*exp.(-κp.*V0);el=el,q=q))*Δx
+    end
+end
+
+function Ik(k;q,κp,V0,Δx=Δx)
+    mq = q^q*(1-q)^(1-q)
+    if k==1
+        return sum(G1.(mq.*exp.(-κp.*V0);el=-1.0,q=q))*Δx
+    elseif k==2
+        return sum(G2.(mq.*exp.(-κp.*V0);el=-1.0,q=q))*Δx
+    elseif k==3
+        return sum(G3.(mq.*exp.(-κp.*V0);el=-1.0,q=q))*Δx
+    elseif k==12
+        mid = floor(Int64,length(V0)/2.0)
+        return sum(G1.(mq.*exp.(-κp.*V0[1:mid]);el=-1.0,q=q))*Δx + sum(G2.(mq.*exp.(-κp.*V0[mid+1:end]);el=-1.0,q=q))*Δx
+    else
+        error("I_k not defined for that k.")
+    end
+end
+
+function Cl(el;κp,V0,q,Δx=Δx,k=0,start=1.0)
+    function fun!(f,c)
+        f[1] = ICL(c[1];el=el,κp=κp,V0=V0,Δx=Δx,q=q,k=k) - 1.0
+    end
+    sol = nlsolve(fun!,[start])
+    if sol.f_converged
+        return sol.zero[1]
+    else
+        error("Failed (Cl).")
+    end
+end
+
+function Cl3(el;κp,V0,q,Δx=Δx)
+    function fun!(f,c)
+        f[1] = ICL(c[1];el=el,κp=κp,V0=V0,Δx=Δx,q=q) - 1.0
+    end
+    sol = nlsolve(fun!,[1.0])
+    if sol.f_converged
+        return sol.zero[1]
+    else
+        error("Failed (Cl).")
+    end
+end
+
+function H(el;κp,V0,q,Δx=Δx)
+    return G(Cl(el;κp=κp,V0=V0,Δx=Δx,q=q);el=el,q=q)+el
+end
+
+function lstar(cbz;κp,V0,q,Δx=Δx)
+    function fun!(f,els)
+        f[1] = H(els[1];κp=κp,V0=V0,Δx=Δx,q=q) - cbz
+    end
+    sol = nlsolve(fun!,[1.0])
+    if sol.f_converged
+        return sol.zero[1]
+    else
+        error("Failed (H).")
+    end
+end
+
+
+
+
